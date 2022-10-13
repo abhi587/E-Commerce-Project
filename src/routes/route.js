@@ -20,7 +20,10 @@ router.put('/user/:userId/profile', Auth.authentication, UserController.userProf
 
 //*********************************PRODUCT API**************************************************** */
 router.post('/products', ProductController.registerProduct)
+router.get('/products', ProductController.filterProducts)
+router.get('/products/:productId', ProductController.getProduct)
 router.put('/products/:productId', ProductController.updateProductDetails)
+router.delete('/products/:productId', ProductController.deleteProduct)
 
 
 router.all("/*", function (req, res) {

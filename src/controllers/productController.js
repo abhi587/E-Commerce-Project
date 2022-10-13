@@ -125,7 +125,7 @@ const registerProduct = async function (req, res) {
         }
 
         // validating image type
-        if (!isValidImageType(image[0].mimetype)) {
+        if (!isValidImageType(image[0].mimetype)) { 
             return res
                 .status(400)
                 .send({ status: false, message: "Only images can be uploaded (jpeg/jpg/png)" });
@@ -161,6 +161,173 @@ const registerProduct = async function (req, res) {
 
     }
 };
+
+//*****************************************GET ALL & FILTERED PRODUCTS LIST************************************* */
+
+const filterProducts = async function(req, res) {
+
+    try {
+
+        const queryParams = req.query;
+        const filterConditions = { isDeleted: false, deletedAt: null };
+        const sorting = {};
+
+        // destructuring filters from query params
+        let { size, name, priceSort, priceGreaterThan, priceLessThan } = queryParams;
+
+        // if query params has any field
+        if (isValidInputBody(queryParams)) {
+
+            // If query params has key name "size" then validating it. Here size filter is related to availableSizes
+            if (size) {
+                //parsing string
+                size = JSON.parse(size);
+
+                // size should be an array
+                if (Array.isArray(size) && size.length > 0) {
+                    //validating each element of array
+                    for (let i = 0; i < size.length; i++) {
+                        const element = size[i];
+
+                        if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(element)) {
+                            return res
+                                .status(400)
+                                .send({status: false,message: `available sizes should be from:  S, XS, M, X, L, XXL, XL`});
+                        }
+                    }
+
+                    filterConditions["availableSizes"] = { $in: size };
+                } else {
+                    return res
+                        .status(400)
+                        .send({status: false,message: "size should be in array format: [X, M,L]"});
+                }
+            }
+
+            // If query params has key name "priceGreaterThan" then validating it. here "priceGreaterThan" filter is related to price
+            if (priceGreaterThan) {
+                if (!isValidPrice(priceGreaterThan)) {
+                    return res
+                        .status(400)
+                        .send({ status: false, message: "Enter a valid price" });
+                }
+
+                filterConditions["price"] = { $gt: Number(priceGreaterThan) };
+            }
+
+            if (priceLessThan) {
+                if (!isValidPrice(priceLessThan)) {
+                    return res
+                        .status(400)
+                        .send({ status: false, message: "Enter a valid price" });
+                }
+                if (priceGreaterThan) {
+                    filterConditions["price"] = {
+                        $gt: Number(priceGreaterThan),
+                        $lt: Number(priceLessThan),
+                    };
+                } else {
+                    filterConditions["price"] = { $lt: Number(priceLessThan) };
+                }
+            }
+
+            if (priceSort) {
+                if (!["-1", "1"].includes(priceSort)) {
+                    return res
+                        .status(400)
+                        .send({status: false,message: "price sort should be a number:  -1 or 1"});
+                }
+                sorting["price"] = Number(priceSort);
+            }
+
+            // If query params has key "name" then validating it. here "name" filter is related to title
+            if (name) {
+                if (!isValidInputValue(name)) {
+                    return res
+                        .status(400)
+                        .send({status: false,message: "product name should be in valid format"});
+                }
+                // creating regex for name
+                const regexForName = new RegExp(name, "i");
+
+                filterConditions["title"] = { $regex: regexForName };
+            }
+
+            const filteredProducts = await ProductModel.find(filterConditions).sort(sorting);
+
+            if (filteredProducts.length == 0) {
+                return res
+                    .status(404)
+                    .send({ status: false, message: "no product found" });
+            }
+
+            return res
+                .status(200)
+                .send({status: true,message: "Filtered product list is here",productCount: filteredProducts.length,data: filteredProducts})
+
+        } else {
+
+            const allProducts = await ProductModel.find(filterConditions);
+
+            if (allProducts.length == 0) {
+                return res
+                    .status(404)
+                    .send({ status: false, message: "no products found" });
+            }
+
+            res
+                .status(200)
+                .send({status: true,message: " Product list is here",productCount: allProducts.length,data: allProducts});
+        }
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+};
+
+//*************************************GET PRODUCT DETAILS*********************************************** */
+
+const getProduct = async function(req, res) {
+
+    try {
+
+        const productId = req.params.productId;
+        const queryParams = req.query;
+
+        if (isValidInputBody(queryParams)) {
+            return res
+                .status(404)
+                .send({ status: false, message: "Page not found" });
+        }
+
+        if (!isValidObjectId(productId)) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Invalid product id" });
+        }
+
+        const productById = await ProductModel.findOne({
+            _id: productId,
+            isDeleted: false,
+            deletedAt: null,
+        });
+
+        if (!productById) {
+            return res
+                .status(404)
+                .send({status: false,message: "No product found by this Product id"});
+        }
+
+        res
+            .status(200)
+            .send({ status: true, message: "success", data: productById });
+
+    } catch (error) {
+
+        res.status(500).send({ error: error.message });
+
+    }
+};
+
 
 //*************************************UPDATE A PRODUCT DETAILS********************************************** */
 
@@ -330,14 +497,67 @@ const updateProductDetails = async function(req, res) {
     } catch (error) {
 
         res.status(500).send({ error: error.message });
-        
+
     }
 };
+
+
+//*************************************DELETE PRODUCT************************************************** */
+
+const deleteProduct = async function(req, res) {
+
+    try {
+
+        const productId = req.params.productId;
+        const queryParams = req.query;
+
+        // no data is required from query params
+        if (isValidInputBody(queryParams)) {
+            return res
+                .status(404)
+                .send({ status: false, message: "Page not found" });
+        }
+        // validating product id
+        if (!isValidObjectId(productId)) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Invalid product id" });
+        }
+        // checking product available by given product ID 
+        const productById = await ProductModel.findOne({
+            _id: productId,
+            isDeleted: false,
+            deletedAt: null,
+        });
+
+        if (!productById) {
+            return res
+                .status(404)
+                .send({status: false,message: "No product found by this product id"});
+        }
+
+        // updating product isDeleted field
+        const markDirty = await ProductModel.findOneAndUpdate({ _id: productId }, { $set: { isDeleted: true, deletedAt: Date.now() } });
+
+        res
+            .status(200)
+            .send({ status: true, message: "Product successfully deleted" });
+
+    } catch (error) {
+
+        res.status(500).send({ error: error.message });
+
+    }
+};
+
 
 
 //**********************************EXPORTING PRODUCT RELATED HANDLER FUNCTION******************************* */
 
 module.exports = {
     registerProduct,
-    updateProductDetails
+    filterProducts,
+    getProduct,
+    updateProductDetails,
+    deleteProduct
 };
