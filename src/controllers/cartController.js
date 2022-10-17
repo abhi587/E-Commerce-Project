@@ -287,7 +287,7 @@ const emptyCart = async function(req, res) {
                 .send({ status: false, message: " user does not exist" });
         }
 
-        // authorization
+         // authorization
         if (decodedToken.userId !== userId) {
             return res
                 .status(403)
