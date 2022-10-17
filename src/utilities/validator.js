@@ -50,7 +50,7 @@ const isValidPincode = function (pincode) {
 };
 
 const isValidPrice = function (price) {
-    let regexForPrice = /^\d+(\.\d{1,2})?$/
+    let regexForPrice = /^[1-9]{1}\d*((\.)\d+)?$/
     return regexForPrice.test(price)
 };
 

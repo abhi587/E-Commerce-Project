@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const {isValidInputBody,isValidInputValue,isValidOnlyCharacters,isValidAddress,isValidEmail,isValidPhone,
     isValidPassword,isValidNumber,isValidPincode,isValidPrice,isValidObjectId,isValidImageType}= require("../utilities/validator");
+const CartModel = require("../models/cartModel")
 
 //*********************************************USER REGISTRATION******************************************** */
 
@@ -201,9 +202,17 @@ const userRegistration = async function(req, res) {
             password: encryptedPassword,
             address: address,
         };
-
+        
         // registering a new user
         const newUser = await UserModel.create(userData);
+
+        // after creating user creating an empty cart for same user
+        const newUserCart = await CartModel.create({
+            userId: newUser._id,
+            items: [],
+            totalItems: 0,
+            totalPrice: 0
+        })
 
         res
             .status(201)
