@@ -19,20 +19,35 @@ const orderSchema = new mongoose.Schema({
             min: 1,
         },
     }, ],
-    totalPrice: { type: Number, required: [true, "totalPrice is required"] },
-    totalItems: { type: Number, required: [true, "totalItems is required"] },
+    totalPrice: { 
+        type: Number, 
+        required: [true, "totalPrice is required"] 
+    },
+    totalItems: { 
+        type: Number, 
+        required: [true, "totalItems is required"] 
+    },
     totalQuantity: {
         type: Number,
         required: [true, "total product quantity is required"],
     },
-    cancellable: { type: Boolean, default: true },
+    cancellable: { 
+        type: Boolean, 
+        default: true 
+    },
     status: {
         type: String,
         enum: ["pending", "completed", "cancelled"],
         default: "pending",
     },
-    deletedAt: { type: Date, default: null },
-    isDeleted: { type: Boolean, default: false },
+    deletedAt: { 
+        type: Date, 
+        default: null 
+    },
+    isDeleted: { 
+        type: Boolean, 
+        default: false 
+    },
 }, { timestamps: true });
 
 
