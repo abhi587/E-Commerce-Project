@@ -67,9 +67,8 @@ const createOrder = async function(req, res) {
         const allProductsInCart = userCartDetail.items;
 
         for (let i = 0; i < allProductsInCart.length; i++) {
-            const isProductInStock = await ProductModel.findById(allProductsInCart[i].productId);
 
-            if (allProductsInCart[i].quantity == 0) {
+            if (allProductsInCart[i].quantity === 0) {
                 return res
                     .status(400)
                     .send({status: false,message: `${allProductsInCart[i].productId} is out of stock`});
