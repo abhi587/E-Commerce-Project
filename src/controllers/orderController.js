@@ -63,18 +63,6 @@ const createOrder = async function(req, res) {
             totalQuantityInCart += totalQuantity[i].quantity
         }
 
-        // All products are available or not
-        const allProductsInCart = userCartDetail.items;
-
-        for (let i = 0; i < allProductsInCart.length; i++) {
-
-            if (allProductsInCart[i].quantity === 0) {
-                return res
-                    .status(400)
-                    .send({status: false,message: `${allProductsInCart[i].productId} is out of stock`});
-            }
-        }
-
         if (cancellable) {
             if (typeof cancellable !== "boolean") {
                 return res
