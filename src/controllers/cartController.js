@@ -59,7 +59,7 @@ const AddProductToCart = async function(req, res) {
             const newCart = await CartModel.findOneAndUpdate({ userId: userId }, { $set: cartData }, { new: true });
 
             return res
-                .status(200)
+                .status(201)
                 .send({status: true,message: "Product added to cart",data: newCart});
         }
 
