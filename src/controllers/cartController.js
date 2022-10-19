@@ -312,7 +312,7 @@ const emptyCart = async function(req, res) {
     }
 };
 
-//****************************************EXPORTING HANDLERS************************************************ */
+//****************************************EXPORTING HANDLERS*************************************************/
 
 module.exports = {
     AddProductToCart,
