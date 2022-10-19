@@ -176,7 +176,7 @@ const updateOrderStatus = async function(req, res) {
         const updateStatus = await OrderModel.findOneAndUpdate({ _id: orderId }, { $set: { status: status } }, { new: true });
 
         res
-            .status(200)
+            .status(201)
             .send({status: true,message: "order status updated",data: updateStatus});
             
     } catch (error) {
