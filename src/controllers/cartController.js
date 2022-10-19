@@ -304,7 +304,7 @@ const emptyCart = async function(req, res) {
 
 
         return res
-            .status(200)
+            .status(204)
             .send({status: true,message: "cart made empty successfully",data: makeCartEmpty});
 
     } catch (error) {
